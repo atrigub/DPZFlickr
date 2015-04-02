@@ -285,6 +285,14 @@ class Flickr
     }
 
     /**
+     * @return array
+     */
+    public function getAllOauthData()
+    {
+        return $this->oauthData;
+    }
+
+    /**
      * Set oauthData
      *
      * @param string $key
