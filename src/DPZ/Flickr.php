@@ -128,7 +128,7 @@ class Flickr
      * @param array $parameters The method parameters
      * @return mixed|null The response object
      */
-    public function call($method, $parameters = array())
+    public function call($method, array $parameters = array())
     {
         $parameters['method'] = $method;
         $parameters['format'] = 'php_serial';
@@ -148,11 +148,9 @@ class Flickr
      * @param $parameters
      * @return mixed|null
      */
-    public function upload($parameters)
+    public function upload(array $parameters = array())
     {
-        $requestParams = ($parameters == NULL ? array() : $parameters);
-
-        $requestParams = array_merge($requestParams, $this->getOauthParams());
+        $requestParams = array_merge($parameters, $this->getOauthParams());
 
         $requestParams['oauth_token'] = $this->getOauthData(self::OAUTH_ACCESS_TOKEN);
 
@@ -175,11 +173,9 @@ class Flickr
      * @param $parameters
      * @return mixed|null
      */
-    public function replace($parameters)
+    public function replace(array $parameters = array())
     {
-        $requestParams = ($parameters == NULL ? array() : $parameters);
-
-        $requestParams = array_merge($requestParams, $this->getOauthParams());
+        $requestParams = array_merge($parameters, $this->getOauthParams());
 
         $requestParams['oauth_token'] = $this->getOauthData(self::OAUTH_ACCESS_TOKEN);
 
