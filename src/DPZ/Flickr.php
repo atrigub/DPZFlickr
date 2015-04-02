@@ -94,6 +94,11 @@ class Flickr
     private $httpTimeout;
 
     /**
+     * @var array Storage oauthData
+     */
+    private $oauthData = array();
+
+    /**
      * Create a new Flickr object
      *
      * @param string $key The Flickr API key
@@ -103,7 +108,7 @@ class Flickr
     public function __construct($key, $secret = NULL, $callback = NULL)
     {
         // start a new session if there isn't one already
-        if (session_id() == '') {
+        if (session_id() == '' && ! $this->isCliRun()) {
             session_start();
         }
         
@@ -112,6 +117,8 @@ class Flickr
         $this->callback = $callback;
 
         $this->httpTimeout = self::DEFAULT_HTTP_TIMEOUT;
+
+        $this->initOauthData();
     }
 
     /**
@@ -251,7 +258,9 @@ class Flickr
      */
     public function signout()
     {
-        unset($_SESSION[self::SESSION_OAUTH_DATA]);
+        if (! $this->isCliRun()) {
+            unset($_SESSION[self::SESSION_OAUTH_DATA]);
+        }
     }
 
     /**
@@ -273,13 +282,26 @@ class Flickr
      */
     public function getOauthData($key)
     {
-        $val = NULL;
-        $data = @$_SESSION[self::SESSION_OAUTH_DATA];
-        if (is_array($data))
-        {
-            $val = @$data[$key];
+        if (array_key_exists($key, $this->oauthData)) {
+            return $this->oauthData[$key];
         }
-        return $val;
+
+        return null;
+    }
+
+    /**
+     * Set oauthData
+     *
+     * @param string $key
+     * @param mixed $value
+     */
+    public function setOauthData($key, $value)
+    {
+        $this->oauthData[$key] = $value;
+
+        if (!$this->isCliRun()) {
+            $_SESSION[self::SESSION_OAUTH_DATA] = $this->oauthData;
+        }
     }
 
     /**
@@ -355,17 +377,6 @@ class Flickr
         }
 
         $parameters['api_sig'] = md5($s);
-    }
-
-    private function setOauthData($key, $value)
-    {
-        $data = @$_SESSION[self::SESSION_OAUTH_DATA];
-        if (!is_array($data))
-        {
-            $data = array();
-        }
-        $data[$key] = $value;
-        $_SESSION[self::SESSION_OAUTH_DATA] = $data;
     }
 
     /**
@@ -687,4 +698,25 @@ class Flickr
 
         return $response;
     }
+
+    /**
+     * Check where run script
+     *
+     * @return bool
+     */
+    private function isCliRun()
+    {
+        return php_sapi_name() === 'cli';
+    }
+
+    /**
+     * init
+     */
+    private function initOauthData()
+    {
+        if (!$this->isCliRun() && isset($_SESSION[self::SESSION_OAUTH_DATA])) {
+            $this->oauthData = $_SESSION[self::SESSION_OAUTH_DATA];
+        }
+    }
+
 }
